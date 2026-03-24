@@ -44,6 +44,7 @@ python "square game.py"
 ## Controls
 
 - **Arrow Keys**: Move the square
+- **F11**: Toggle full screen mode
 - **ESC**: Return to main menu (saves progress)
 - **Mouse**: Click buttons in menu
 

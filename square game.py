@@ -12,6 +12,8 @@ CELL_SIZE = 40
 GRID_WIDTH = WIDTH // CELL_SIZE
 GRID_HEIGHT = HEIGHT // CELL_SIZE
 FPS = 60
+windowed_size = (WIDTH, HEIGHT)
+full_screen = False
 
 # Colors
 BG_COLOR = (30, 40, 70)
@@ -145,6 +147,15 @@ def main_menu(screen):
                     return 'start'
                 if quit_button.is_hovered(mouse_pos):
                     return 'quit'
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_F11:
+                    global full_screen
+                    full_screen = not full_screen
+                    if full_screen:
+                        screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+                    else:
+                        screen = pygame.display.set_mode(windowed_size)
+                    pygame.time.wait(200)
 
         pygame.display.flip()
 
@@ -163,6 +174,15 @@ def game_loop(screen, start_level):
                 if event.type == pygame.QUIT:
                     save_progress(level)
                     return 'quit'
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_F11:
+                        global full_screen
+                        full_screen = not full_screen
+                        if full_screen:
+                            screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+                        else:
+                            screen = pygame.display.set_mode(windowed_size)
+                        pygame.time.wait(200)
 
             keys = pygame.key.get_pressed()
             if keys[pygame.K_LEFT]:
@@ -186,7 +206,7 @@ def game_loop(screen, start_level):
             clock.tick(FPS)
 
 def main():
-    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    screen = pygame.display.set_mode(windowed_size)
     pygame.display.set_caption("Square Maze Game")
 
     current_level = load_progress()
