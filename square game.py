@@ -47,7 +47,10 @@ class Maze:
         self.width = width
         self.height = height
         self.grid = [[1 for _ in range(width)] for _ in range(height)]  # 1 = wall, 0 = path
-        self.player_pos = [1, 1]
+        self.size = 30
+        self.speed = 3
+        self.player_x = 1 * CELL_SIZE + CELL_SIZE // 2
+        self.player_y = 1 * CELL_SIZE + CELL_SIZE // 2
         self.goal_pos = [width - 2, height - 2]
         self.generate_maze()
 
@@ -92,16 +95,55 @@ class Maze:
         pygame.draw.rect(screen, GOAL_COLOR, (self.goal_pos[0] * CELL_SIZE, self.goal_pos[1] * CELL_SIZE, CELL_SIZE, CELL_SIZE))
 
         # Draw player
-        pygame.draw.rect(screen, PLAYER_COLOR, (self.player_pos[0] * CELL_SIZE, self.player_pos[1] * CELL_SIZE, CELL_SIZE, CELL_SIZE))
+        pygame.draw.rect(screen, PLAYER_COLOR, (self.player_x - self.size // 2, self.player_y - self.size // 2, self.size, self.size))
 
-    def move_player(self, dx, dy):
-        new_x = self.player_pos[0] + dx
-        new_y = self.player_pos[1] + dy
-        if 0 <= new_x < self.width and 0 <= new_y < self.height and self.grid[new_y][new_x] == 0:
-            self.player_pos = [new_x, new_y]
+    def move_player(self, keys):
+        # Handle horizontal movement
+        new_x = self.player_x
+        if keys[pygame.K_LEFT]:
+            new_x -= self.speed
+        if keys[pygame.K_RIGHT]:
+            new_x += self.speed
+        
+        player_rect = pygame.Rect(new_x - self.size // 2, self.player_y - self.size // 2, self.size, self.size)
+        collision = False
+        for y in range(self.height):
+            for x in range(self.width):
+                if self.grid[y][x] == 1:
+                    wall_rect = pygame.Rect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+                    if player_rect.colliderect(wall_rect):
+                        collision = True
+                        break
+            if collision:
+                break
+        if not collision:
+            self.player_x = new_x
+        
+        # Handle vertical movement
+        new_y = self.player_y
+        if keys[pygame.K_UP]:
+            new_y -= self.speed
+        if keys[pygame.K_DOWN]:
+            new_y += self.speed
+        
+        player_rect = pygame.Rect(self.player_x - self.size // 2, new_y - self.size // 2, self.size, self.size)
+        collision = False
+        for y in range(self.height):
+            for x in range(self.width):
+                if self.grid[y][x] == 1:
+                    wall_rect = pygame.Rect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+                    if player_rect.colliderect(wall_rect):
+                        collision = True
+                        break
+            if collision:
+                break
+        if not collision:
+            self.player_y = new_y
 
     def check_win(self):
-        return self.player_pos == self.goal_pos
+        goal_rect = pygame.Rect(self.goal_pos[0] * CELL_SIZE, self.goal_pos[1] * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+        player_rect = pygame.Rect(self.player_x - self.size // 2, self.player_y - self.size // 2, self.size, self.size)
+        return player_rect.colliderect(goal_rect)
 
 class Button:
     def __init__(self, x, y, width, height, text):
@@ -165,8 +207,6 @@ def main_menu(screen):
 
 def game_loop(screen, start_level):
     level = start_level
-    move_delay = 10  # Frames between moves
-    move_counter = 0
     while True:
         maze = Maze(GRID_WIDTH, GRID_HEIGHT)
         clock = pygame.time.Clock()
@@ -191,24 +231,7 @@ def game_loop(screen, start_level):
                         pygame.time.wait(200)
 
             keys = pygame.key.get_pressed()
-            if move_counter > 0:
-                move_counter -= 1
-            else:
-                moved = False
-                if keys[pygame.K_LEFT]:
-                    maze.move_player(-1, 0)
-                    moved = True
-                elif keys[pygame.K_RIGHT]:
-                    maze.move_player(1, 0)
-                    moved = True
-                elif keys[pygame.K_UP]:
-                    maze.move_player(0, -1)
-                    moved = True
-                elif keys[pygame.K_DOWN]:
-                    maze.move_player(0, 1)
-                    moved = True
-                if moved:
-                    move_counter = move_delay
+            maze.move_player(keys)
             if keys[pygame.K_ESCAPE]:
                 save_progress(level)
                 return 'menu'

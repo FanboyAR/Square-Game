@@ -8,7 +8,13 @@ A maze-solving game where you control a square through randomly generated mazes.
 - Randomly generated mazes for each level
 - Collision detection with walls
 - Progress saving (resumes from last completed level)
-- Simple controls: arrow keys to move, ESC to return to menu
+- Smooth continuous movement
+- Intelligent multi-direction movement (moves in available directions when multiple keys held)
+- Full screen toggle with F11
+
+## Gameplay
+
+Navigate the red square smoothly through the randomly generated maze to reach the green goal square. Hold arrow keys for continuous movement. When holding multiple directions, the square will move in any unobstructed path.
 
 ## Requirements
 
