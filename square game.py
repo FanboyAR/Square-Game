@@ -165,6 +165,8 @@ def main_menu(screen):
 
 def game_loop(screen, start_level):
     level = start_level
+    move_delay = 10  # Frames between moves
+    move_counter = 0
     while True:
         maze = Maze(GRID_WIDTH, GRID_HEIGHT)
         clock = pygame.time.Clock()
@@ -189,14 +191,24 @@ def game_loop(screen, start_level):
                         pygame.time.wait(200)
 
             keys = pygame.key.get_pressed()
-            if keys[pygame.K_LEFT]:
-                maze.move_player(-1, 0)
-            if keys[pygame.K_RIGHT]:
-                maze.move_player(1, 0)
-            if keys[pygame.K_UP]:
-                maze.move_player(0, -1)
-            if keys[pygame.K_DOWN]:
-                maze.move_player(0, 1)
+            if move_counter > 0:
+                move_counter -= 1
+            else:
+                moved = False
+                if keys[pygame.K_LEFT]:
+                    maze.move_player(-1, 0)
+                    moved = True
+                elif keys[pygame.K_RIGHT]:
+                    maze.move_player(1, 0)
+                    moved = True
+                elif keys[pygame.K_UP]:
+                    maze.move_player(0, -1)
+                    moved = True
+                elif keys[pygame.K_DOWN]:
+                    maze.move_player(0, 1)
+                    moved = True
+                if moved:
+                    move_counter = move_delay
             if keys[pygame.K_ESCAPE]:
                 save_progress(level)
                 return 'menu'
