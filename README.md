@@ -1,12 +1,14 @@
-# Square Game
+# Square Maze Game
 
-A simple Pygame application where you can move a square around the screen using arrow keys. The square is bounded within the screen edges.
+A maze-solving game where you control a square through randomly generated mazes. Navigate through walls to reach the goal and progress through increasingly challenging levels. Your progress is automatically saved.
 
 ## Features
 
-- Move the square with arrow keys
-- Toggle full screen with F11 key
-- Square stays within screen bounds
+- Main menu with start and quit options
+- Randomly generated mazes for each level
+- Collision detection with walls
+- Progress saving (resumes from last completed level)
+- Simple controls: arrow keys to move, ESC to return to menu
 
 ## Requirements
 
@@ -18,7 +20,7 @@ A simple Pygame application where you can move a square around the screen using 
 1. Clone the repository:
    ```
    git clone <your-repo-url>
-   cd square-game
+   cd square-maze-game
    ```
 
 2. Install dependencies:
@@ -33,9 +35,20 @@ Run the game with:
 python "square game.py"
 ```
 
-Use arrow keys to move the square. Press F11 to toggle full screen mode. Close the window to exit.
+- Use mouse to click "Start Game" from the main menu
+- Use arrow keys to move the red square through the maze
+- Reach the green goal square to advance to the next level
+- Press ESC during gameplay to return to the main menu
+- Progress is automatically saved when you complete a level or quit
+
+## Controls
+
+- **Arrow Keys**: Move the square
+- **ESC**: Return to main menu (saves progress)
+- **Mouse**: Click buttons in menu
 
 ## Troubleshooting
 
 - If you get "No module named 'pygame'", ensure pygame-ce is installed: `pip install pygame-ce`
 - The game requires a display; it won't run in headless environments.
+- Progress is saved in `progress.json` in the game directory
