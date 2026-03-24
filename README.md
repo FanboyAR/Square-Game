@@ -47,6 +47,8 @@ python "square game.py"
 - **F11**: Toggle full screen mode
 - **ESC**: Return to main menu (saves progress)
 - **Mouse**: Click buttons in menu
+- **Enter/Space**: Start game from menu
+- **Escape**: Quit from menu
 
 ## Troubleshooting
 

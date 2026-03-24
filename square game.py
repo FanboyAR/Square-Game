@@ -148,6 +148,10 @@ def main_menu(screen):
                 if quit_button.is_hovered(mouse_pos):
                     return 'quit'
             if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN or event.key == pygame.K_SPACE:
+                    return 'start'
+                if event.key == pygame.K_ESCAPE:
+                    return 'quit'
                 if event.key == pygame.K_F11:
                     global full_screen
                     full_screen = not full_screen
