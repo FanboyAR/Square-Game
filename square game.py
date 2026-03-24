@@ -70,55 +70,50 @@ SAVE_FILE = 'progress.json'
 MID_SAVE_FILE = 'mid_save.json'
 SETTINGS_FILE = 'settings.json'
 
-def load_progress():
-    if os.path.exists(SAVE_FILE):
-        with open(SAVE_FILE, 'r') as f:
-            data = json.load(f)
-            return data.get('level', 1), data.get('total_coins', 0)
-    return 1, 0
+def _is_valid_rgb_triplet(value):
+    return (
+        isinstance(value, (tuple, list))
+        and len(value) == 3
+        and all(isinstance(channel, int) and 0 <= channel <= 255 for channel in value)
+    )
 
-def load_speed_level():
-    if os.path.exists(SAVE_FILE):
-        with open(SAVE_FILE, 'r') as f:
-            data = json.load(f)
-            return data.get('speed_level', 0)
-    return 0
+class ProgressRepository:
+    def __init__(self, save_file):
+        self.save_file = save_file
 
-def load_bonus_coin_level():
-    if os.path.exists(SAVE_FILE):
-        with open(SAVE_FILE, 'r') as f:
-            data = json.load(f)
-            return data.get('bonus_coin_level', 0)
-    return 0
+    def _read_data(self):
+        if os.path.exists(self.save_file):
+            with open(self.save_file, 'r') as f:
+                return json.load(f)
+        return {}
 
-def load_reset_count():
-    if os.path.exists(SAVE_FILE):
-        with open(SAVE_FILE, 'r') as f:
-            data = json.load(f)
-            return data.get('reset_count', 0)
-    return 0
+    def _write_data(self, data):
+        with open(self.save_file, 'w') as f:
+            json.dump(data, f)
 
-def load_prestige_points():
-    if os.path.exists(SAVE_FILE):
-        with open(SAVE_FILE, 'r') as f:
-            data = json.load(f)
-            return data.get('prestige_points', 0)
-    return 0
+    def load_progress(self):
+        data = self._read_data()
+        return data.get('level', 1), data.get('total_coins', 0)
 
-def load_prestige_upgrade_level():
-    if os.path.exists(SAVE_FILE):
-        with open(SAVE_FILE, 'r') as f:
-            data = json.load(f)
-            return data.get('prestige_upgrade_level', 0)
-    return 0
+    def load_speed_level(self):
+        return self._read_data().get('speed_level', 0)
 
-def load_skin_state():
-    selected_skin_id = 'base'
-    unlocked_skin_ids = ['base']
+    def load_bonus_coin_level(self):
+        return self._read_data().get('bonus_coin_level', 0)
 
-    if os.path.exists(SAVE_FILE):
-        with open(SAVE_FILE, 'r') as f:
-            data = json.load(f)
+    def load_reset_count(self):
+        return self._read_data().get('reset_count', 0)
+
+    def load_prestige_points(self):
+        return self._read_data().get('prestige_points', 0)
+
+    def load_prestige_upgrade_level(self):
+        return self._read_data().get('prestige_upgrade_level', 0)
+
+    def load_skin_state(self):
+        selected_skin_id = 'base'
+        unlocked_skin_ids = ['base']
+        data = self._read_data()
 
         raw_selected = data.get('selected_skin_id', 'base')
         raw_unlocked = data.get('unlocked_skin_ids', ['base'])
@@ -135,21 +130,11 @@ def load_skin_state():
         if selected_skin_id not in unlocked_skin_ids:
             selected_skin_id = 'base'
 
-    return selected_skin_id, unlocked_skin_ids
+        return selected_skin_id, unlocked_skin_ids
 
-def _is_valid_rgb_triplet(value):
-    return (
-        isinstance(value, (tuple, list))
-        and len(value) == 3
-        and all(isinstance(channel, int) and 0 <= channel <= 255 for channel in value)
-    )
-
-def load_custom_skin_colors():
-    colors = {skin['id']: tuple(skin['color']) for skin in PLAYER_SKINS}
-
-    if os.path.exists(SAVE_FILE):
-        with open(SAVE_FILE, 'r') as f:
-            data = json.load(f)
+    def load_custom_skin_colors(self):
+        colors = {skin['id']: tuple(skin['color']) for skin in PLAYER_SKINS}
+        data = self._read_data()
 
         raw_colors = data.get('custom_skin_colors')
         if isinstance(raw_colors, dict):
@@ -164,34 +149,128 @@ def load_custom_skin_colors():
                 if 'flux' in colors:
                     colors['flux'] = legacy_color
 
-    return colors
+        return colors
+
+    def save_progress(
+        self,
+        level,
+        total_coins,
+        speed_level,
+        bonus_coin_level,
+        reset_count,
+        prestige_points,
+        prestige_upgrade_level,
+        selected_skin_id,
+        unlocked_skin_ids,
+        custom_skin_colors,
+    ):
+        if selected_skin_id not in SKIN_ID_SET:
+            selected_skin_id = 'base'
+
+        filtered_unlocked = [skin_id for skin_id in unlocked_skin_ids if skin_id in SKIN_ID_SET]
+        if 'base' not in filtered_unlocked:
+            filtered_unlocked.insert(0, 'base')
+        filtered_unlocked = list(dict.fromkeys(filtered_unlocked))
+
+        if selected_skin_id not in filtered_unlocked:
+            selected_skin_id = 'base'
+
+        serialized_custom_skin_colors = {}
+        if isinstance(custom_skin_colors, dict):
+            for skin in PLAYER_SKINS:
+                skin_id = skin['id']
+                raw_color = custom_skin_colors.get(skin_id, skin['color'])
+                if not _is_valid_rgb_triplet(raw_color):
+                    raw_color = skin['color']
+                serialized_custom_skin_colors[skin_id] = [int(raw_color[0]), int(raw_color[1]), int(raw_color[2])]
+
+        legacy_base_color = serialized_custom_skin_colors.get('base', [
+            int(DEFAULT_BASE_SKIN_COLOR[0]),
+            int(DEFAULT_BASE_SKIN_COLOR[1]),
+            int(DEFAULT_BASE_SKIN_COLOR[2]),
+        ])
+
+        self._write_data(
+            {
+                'level': level,
+                'total_coins': total_coins,
+                'speed_level': speed_level,
+                'bonus_coin_level': bonus_coin_level,
+                'reset_count': reset_count,
+                'prestige_points': prestige_points,
+                'prestige_upgrade_level': prestige_upgrade_level,
+                'selected_skin_id': selected_skin_id,
+                'unlocked_skin_ids': filtered_unlocked,
+                'custom_skin_colors': serialized_custom_skin_colors,
+                'custom_base_skin_color': legacy_base_color,
+            }
+        )
+
+
+class SkinService:
+    def __init__(self, skins):
+        self.skins = skins
+
+    def get_skin_definition(self, skin_id, custom_skin_colors=None):
+        for skin in self.skins:
+            if skin['id'] == skin_id:
+                if isinstance(custom_skin_colors, dict) and skin_id in custom_skin_colors and _is_valid_rgb_triplet(custom_skin_colors[skin_id]):
+                    overridden = dict(skin)
+                    custom_color = (
+                        int(custom_skin_colors[skin_id][0]),
+                        int(custom_skin_colors[skin_id][1]),
+                        int(custom_skin_colors[skin_id][2]),
+                    )
+                    overridden['color'] = custom_color
+                    overridden['accent'] = (
+                        max(40, min(255, 255 - custom_color[0] // 2)),
+                        max(40, min(255, 255 - custom_color[1] // 2)),
+                        max(40, min(255, 255 - custom_color[2] // 2)),
+                    )
+                    return overridden
+                return skin
+        return self.skins[0]
+
+    def get_skin_color(self, skin_id, custom_skin_colors=None):
+        return self.get_skin_definition(skin_id, custom_skin_colors)['color']
+
+
+progress_repository = ProgressRepository(SAVE_FILE)
+skin_service = SkinService(PLAYER_SKINS)
+
+
+def load_progress():
+    return progress_repository.load_progress()
+
+def load_speed_level():
+    return progress_repository.load_speed_level()
+
+def load_bonus_coin_level():
+    return progress_repository.load_bonus_coin_level()
+
+def load_reset_count():
+    return progress_repository.load_reset_count()
+
+def load_prestige_points():
+    return progress_repository.load_prestige_points()
+
+def load_prestige_upgrade_level():
+    return progress_repository.load_prestige_upgrade_level()
+
+def load_skin_state():
+    return progress_repository.load_skin_state()
+
+def load_custom_skin_colors():
+    return progress_repository.load_custom_skin_colors()
 
 def load_custom_base_skin_color():
     return load_custom_skin_colors().get('base', DEFAULT_BASE_SKIN_COLOR)
 
 def get_skin_definition(skin_id, custom_skin_colors=None):
-    for skin in PLAYER_SKINS:
-        if skin['id'] == skin_id:
-            if isinstance(custom_skin_colors, dict) and skin_id in custom_skin_colors and _is_valid_rgb_triplet(custom_skin_colors[skin_id]):
-                overridden = dict(skin)
-                custom_color = (
-                    int(custom_skin_colors[skin_id][0]),
-                    int(custom_skin_colors[skin_id][1]),
-                    int(custom_skin_colors[skin_id][2]),
-                )
-                overridden['color'] = custom_color
-                overridden['accent'] = (
-                    max(40, min(255, 255 - custom_color[0] // 2)),
-                    max(40, min(255, 255 - custom_color[1] // 2)),
-                    max(40, min(255, 255 - custom_color[2] // 2)),
-                )
-                return overridden
-            return skin
-
-    return PLAYER_SKINS[0]
+    return skin_service.get_skin_definition(skin_id, custom_skin_colors)
 
 def get_skin_color(skin_id, custom_skin_colors=None):
-    return get_skin_definition(skin_id, custom_skin_colors)['color']
+    return skin_service.get_skin_color(skin_id, custom_skin_colors)
 
 def draw_skin_preview(screen, rect, skin_definition):
     if rect.width <= 0 or rect.height <= 0:
@@ -349,49 +428,18 @@ def save_progress(
         if 'flux' in custom_skin_colors:
             custom_skin_colors['flux'] = base_override
 
-    if selected_skin_id not in SKIN_ID_SET:
-        selected_skin_id = 'base'
-
-    filtered_unlocked = [skin_id for skin_id in unlocked_skin_ids if skin_id in SKIN_ID_SET]
-    if 'base' not in filtered_unlocked:
-        filtered_unlocked.insert(0, 'base')
-    filtered_unlocked = list(dict.fromkeys(filtered_unlocked))
-
-    if selected_skin_id not in filtered_unlocked:
-        selected_skin_id = 'base'
-
-    serialized_custom_skin_colors = {}
-    if isinstance(custom_skin_colors, dict):
-        for skin in PLAYER_SKINS:
-            skin_id = skin['id']
-            raw_color = custom_skin_colors.get(skin_id, skin['color'])
-            if not _is_valid_rgb_triplet(raw_color):
-                raw_color = skin['color']
-            serialized_custom_skin_colors[skin_id] = [int(raw_color[0]), int(raw_color[1]), int(raw_color[2])]
-
-    legacy_base_color = serialized_custom_skin_colors.get('base', [
-        int(DEFAULT_BASE_SKIN_COLOR[0]),
-        int(DEFAULT_BASE_SKIN_COLOR[1]),
-        int(DEFAULT_BASE_SKIN_COLOR[2]),
-    ])
-
-    with open(SAVE_FILE, 'w') as f:
-        json.dump(
-            {
-                'level': level,
-                'total_coins': total_coins,
-                'speed_level': speed_level,
-                'bonus_coin_level': bonus_coin_level,
-                'reset_count': reset_count,
-                'prestige_points': prestige_points,
-                'prestige_upgrade_level': prestige_upgrade_level,
-                'selected_skin_id': selected_skin_id,
-                'unlocked_skin_ids': filtered_unlocked,
-                'custom_skin_colors': serialized_custom_skin_colors,
-                'custom_base_skin_color': legacy_base_color,
-            },
-            f,
-        )
+    progress_repository.save_progress(
+        level,
+        total_coins,
+        speed_level,
+        bonus_coin_level,
+        reset_count,
+        prestige_points,
+        prestige_upgrade_level,
+        selected_skin_id,
+        unlocked_skin_ids,
+        custom_skin_colors,
+    )
 
 def save_mid_game(maze, level, total_coins, speed_level, bonus_coin_level, prestige_points, prestige_upgrade_level):
     data = {
