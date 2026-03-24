@@ -1,63 +1,70 @@
-# Square Maze Game
+# Square Game
 
-A maze-solving game where you control a square through randomly generated mazes. Navigate through walls to reach the goal and progress through increasingly challenging levels. Your progress is automatically saved.
+Square Game is a progression-based maze runner built with pygame-ce. You guide a square through generated mazes, collect coins, buy upgrades, unlock skins, and keep advancing levels with persistent save data.
 
 ## Features
 
-- Main menu with start and quit options
-- Randomly generated mazes for each level
-- Collision detection with walls
-- Progress saving (resumes from last completed level)
-- Smooth continuous movement
-- Intelligent multi-direction movement (moves in available directions when multiple keys held)
-- Full screen toggle with F11
-
-## Gameplay
-
-Navigate the red square smoothly through the randomly generated maze to reach the green goal square. Hold arrow keys for continuous movement. When holding multiple directions, the square will move in any unobstructed path.
+- Randomly generated mazes that scale with level progression
+- Smooth movement with wall collision and coin collection
+- Store upgrades for speed, coin bonus, and prestige power
+- Prestige/reset system with reward preview before reset
+- Customization menu with unlockable skins:
+   - Free/default skins
+   - Coin-purchasable skins
+   - Level-unlock skins
+   - Prestige skins
+- Gradient skin variants (including patterned gradients)
+- Full RGB sliders for selected skin color customization
+- Display settings menu:
+   - Windowed / Fullscreen / Borderless modes
+   - Resolution selection + Auto resolution mode
+- Persistent progress and settings saves
 
 ## Requirements
 
-- Python 3.11 or later
-- pygame-ce
+- Python 3.11+
+- `pygame-ce`
 
 ## Installation
 
 1. Clone the repository:
-   ```
-   git clone <your-repo-url>
-   cd square-maze-game
-   ```
+    ```bash
+    git clone <your-repo-url>
+    cd Square_Game
+    ```
 
 2. Install dependencies:
-   ```
-   pip install -r requirements.txt
-   ```
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-## Running the Game
+## Run
 
-Run the game with:
-```
+```bash
 python "square game.py"
 ```
 
-- Use mouse to click "Start Game" from the main menu
-- Use arrow keys to move the red square through the maze
-- Reach the green goal square to advance to the next level
-- Press ESC during gameplay to return to the main menu
-- Progress is automatically saved when you complete a level or quit
-
 ## Controls
 
-- **Arrow Keys**: Move the square
-- **F11**: Toggle full screen mode
-- **ESC**: Return to main menu (saves progress)
-- **Mouse**: Click buttons in menu
-- **Enter/Space**: Start game from menu
-- **Escape**: Quit from menu
+- **WASD / Arrow Keys**: Move player
+- **Mouse**: Navigate menus and click buttons
+- **Enter / Space**: Start game from main menu
+- **ESC**:
+   - In gameplay: open/return via pause flow
+   - In menus: go back (where applicable)
+- **F11**: Quick toggle between windowed and fullscreen
 
-## Troubleshooting
+## Save Files
 
-- If you get "No module named 'pygame'", ensure pygame-ce is installed: `pip install pygame-ce`
-- The game requires a display; it won't run in headless environments.
-- Progress is saved in `progress.json` in the game directory
+- `progress.json`: level, coins, upgrades, prestige, unlocked/selected skins, custom skin RGB
+- `mid_save.json`: in-level checkpoint/state data
+- `settings.json`: display mode and resolution preferences
+
+## Notes
+
+- The game window title is **Square Game**.
+- Auto resolution adapts to selected window mode.
+- If pygame is missing, install with:
+   ```bash
+   pip install pygame-ce
+   ```
