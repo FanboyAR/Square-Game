@@ -47,9 +47,9 @@ class Maze:
         self.width = width
         self.height = height
         self.grid = [[1 for _ in range(width)] for _ in range(height)]  # 1 = wall, 0 = path
-        self.generate_maze()
         self.player_pos = [1, 1]
         self.goal_pos = [width - 2, height - 2]
+        self.generate_maze()
 
     def generate_maze(self):
         # Simple maze generation using randomized DFS
